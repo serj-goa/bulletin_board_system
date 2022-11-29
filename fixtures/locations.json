@@ -1,0 +1,92 @@
+[
+  {
+    "model": "ads.Location",
+    "pk": 1,
+    "fields": {
+      "address": "Москва, м. Студенческая",
+      "latitude": "55.738472",
+      "longitude": "37.548188"
+    }
+  },
+  {
+    "model": "ads.Location",
+    "pk": 2,
+    "fields": {
+      "address": "Москва, м. Черкизовская",
+      "latitude": "55.804042",
+      "longitude": "37.745415"
+    }
+  },
+  {
+    "model": "ads.Location",
+    "pk": 3,
+    "fields": {
+      "address": "Санкт-Петербург, м. Невский проспект",
+      "latitude": "59.934719",
+      "longitude": "30.331599"
+    }
+  },
+  {
+    "model": "ads.Location",
+    "pk": 4,
+    "fields": {
+      "address": "Москва, м. Библиотека имени Ленина",
+      "latitude": "55.751275",
+      "longitude": "37.610953"
+    }
+  },
+  {
+    "model": "ads.Location",
+    "pk": 5,
+    "fields": {
+      "address": "Москва, м. Комсомольская",
+      "latitude": "55.775256",
+      "longitude": "37.655653"
+    }
+  },
+  {
+    "model": "ads.Location",
+    "pk": 6,
+    "fields": {
+      "address": "Санкт-Петербург, м. Чернышевская",
+      "latitude": "59.946097",
+      "longitude": "30.371087"
+    }
+  },
+  {
+    "model": "ads.Location",
+    "pk": 7,
+    "fields": {
+      "address": "Пушкин, Павловское шоссе 23/2",
+      "latitude": "59.707737",
+      "longitude": "30.415887"
+    }
+  },
+  {
+    "model": "ads.Location",
+    "pk": 8,
+    "fields": {
+      "address": "Сакнт-Петербург, м. Балтийская",
+      "latitude": "59.910822",
+      "longitude": "30.327827"
+    }
+  },
+  {
+    "model": "ads.Location",
+    "pk": 9,
+    "fields": {
+      "address": "Москва, м. Беломорская",
+      "latitude": "55.865056",
+      "longitude": "37.475797"
+    }
+  },
+  {
+    "model": "ads.Location",
+    "pk": 10,
+    "fields": {
+      "address": "Москва, м. Электрозаодская",
+      "latitude": "55.781876",
+      "longitude": "7.7053216"
+    }
+  }
+]
