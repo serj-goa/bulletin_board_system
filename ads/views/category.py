@@ -12,29 +12,20 @@ from ads.models import Category
 
 @method_decorator(csrf_exempt, name="dispatch")
 class CategoryListView(ListView):
-    model = Category
+    queryset = Category.objects.order_by("name")
+    context_object_name = 'category_list'
+    paginate_by = settings.TOTAL_ON_PAGE
 
     def get(self, request, *args, **kwargs):
-        super().get(request, *args, **kwargs)
-
-        paginator = Paginator(self.object_list, settings.TOTAL_ON_PAGE)
-        page_number = request.GET.get('page', 1)
-        page_obj = paginator.get_page(page_number)
-
-        categories = []
-
-        for category in page_obj:
-            categories.append(
-                {
-                    "id": category.id,
-                    "name": category.name
-                }
-            )
+        self.object_list = self.get_queryset()
+        context = self.get_context_data()
 
         response = {
-            "items": categories,
-            "total": paginator.count,
-            "num_pages": paginator.num_pages
+            "items": [
+                category.json_representation for category in context['category_list']
+            ],
+            "total": context['paginator'].count if context['paginator'] is not None else len(context['category_list']),
+            "num_pages": context['paginator'].num_pages if context['paginator'] is not None else 1
         }
 
         return JsonResponse(response, safe=False, json_dumps_params={'ensure_ascii': False})
@@ -42,7 +33,7 @@ class CategoryListView(ListView):
 
 @method_decorator(csrf_exempt, name="dispatch")
 class CategoryDetailView(DetailView):
-    model = Category
+    queryset = Category.objects
 
     def get(self, request, *args, **kwargs):
         try:
@@ -50,13 +41,7 @@ class CategoryDetailView(DetailView):
         except Http404:
             return JsonResponse({"Error": "Not found"}, status=404)
 
-        return JsonResponse(
-            {
-                "id": category.id,
-                "name": category.name
-            },
-            json_dumps_params={'ensure_ascii': False}
-        )
+        return JsonResponse(category.json_representation, json_dumps_params={'ensure_ascii': False})
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -65,13 +50,13 @@ class CategoryCreateView(CreateView):
     fields = ["name"]
 
     def post(self, request, *args, **kwargs):
-        category_data = json.loads(request.body)
+        data = json.loads(request.body)
 
         category = Category.objects.create(
-            name=category_data["name"]
+            name=data["name"]
         )
 
-        return JsonResponse({"name": category.name})
+        return JsonResponse(category.json_representation, json_dumps_params={'ensure_ascii': False})
 
 
 @method_decorator(csrf_exempt, name="dispatch")

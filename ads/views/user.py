@@ -9,7 +9,7 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, ListView, CreateView, UpdateView, DeleteView
 
-from ads.models import User, Location
+from ads.models import Location, User
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -35,7 +35,7 @@ class UserListView(ListView):
 
 @method_decorator(csrf_exempt, name="dispatch")
 class UserDetailView(DetailView):
-    model = User
+    queryset = User.objects.select_related("location")
 
     def get(self, request, *args, **kwargs):
         try:
@@ -43,92 +43,76 @@ class UserDetailView(DetailView):
         except Http404:
             return JsonResponse({"Error": "Not found"}, status=404)
 
-        return JsonResponse(
-            {
-                "id": user.id,
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-                "username": user.username,
-                "password": user.password,
-                "role": user.role,
-                "age": user.age,
-                "address": user.location.address if user.location else None,
-            },
-            json_dumps_params={'ensure_ascii': False}
-        )
+        return JsonResponse(user.json_representation, json_dumps_params={'ensure_ascii': False})
 
 
 @method_decorator(csrf_exempt, name="dispatch")
 class UserCreateView(CreateView):
     model = User
-    fields = ["first_name", "last_name", "username", "password", "role", "age", "locations"]
+    fields = ["first_name", "last_name", "username", "password", "role", "age", "location"]
 
     def post(self, request, *args, **kwargs):
-        user_data = json.loads(request.body)
+        data = json.loads(request.body)
+        location_data = data['location']
+        location = Location.objects.create(
+            address=location_data['address'],
+            latitude=location_data['latitude'],
+            longitude=location_data['longitude'],
+        )
 
         user = User.objects.create(
-            first_name=user_data["first_name"],
-            last_name=user_data["last_name"],
-            username=user_data["username"],
-            password=user_data["password"],
-            role=user_data["role"],
-            age=user_data["age"]
+            first_name=data["first_name"],
+            last_name=data["last_name"],
+            username=data["username"],
+            password=data["password"],
+            role=data["role"],
+            age=data["age"],
+            location=location,
         )
 
-        for location in user_data["locations"]:
-            location_object, created = Location.objects.get_or_create(address=location)
-            user.locations.add(location_object)
-
-        user.save()
-
-        return JsonResponse(
-            {
-                "id": user.id,
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-                "username": user.username,
-                "password": user.password,
-                "role": user.role,
-                "age": user.age,
-                "locations": list(map(str, user.locations.all()))
-            }
-        )
+        return JsonResponse(user.json_representation, json_dumps_params={'ensure_ascii': False})
 
 
 @method_decorator(csrf_exempt, name="dispatch")
 class UserUpdateView(UpdateView):
-    model = User
-    fields = ["first_name", "last_name", "username", "password", "role", "age", "locations"]
+    queryset = User.objects.filter(is_active=True)
 
     def patch(self, request, *args, **kwargs):
-        super().post(request, *args, **kwargs)
-        user_data = json.loads(request.body)
+        data = json.loads(request.body)
+        user = self.get_object()
 
-        self.object.first_name = user_data["first_name"]
-        self.object.last_name = user_data["last_name"]
-        self.object.username = user_data["username"]
-        self.object.password = user_data["password"]
-        self.object.role = user_data["role"]
-        self.object.age = user_data["age"]
+        if 'first_name' in data:
+            user.first_name = data["first_name"]
+        if 'last_name' in data:
+            user.last_name = data["last_name"]
+        if 'username' in data:
+            user.username = data["username"]
+        if 'password' in data:
+            user.set_password(data["password"])
+        if 'role' in data:
+            user.role = data["role"]
+        if 'age' in data:
+            user.age = data["age"]
+        if 'location' in data:
+            if user.location is None:
+                location = Location.objects.create(
+                    address=data['location']['address'],
+                    latitude=data['location']['latitude'],
+                    longitude=data['location']['longitude'],
+                )
+                user.location = location
+            else:
+                location = user.location
+                if 'address' in data['location']:
+                    location.address = data['location']['address']
+                if 'latitude' in data['location']:
+                    location.latitude = data['location']['latitude']
+                if 'longitude' in data['location']:
+                    location.longitude = data['location']['longitude']
+                location.save()
+        user.save()
 
-        for location in user_data["locations"]:
-            location_object, created = Location.objects.get_or_create(name=location)
-            self.object.locations.add(location_object)
-
-        self.object.save()
-
-        return JsonResponse(
-            {
-                "id": self.object.id,
-                "first_name": self.object.first_name,
-                "last_name": self.object.last_name,
-                "username": self.object.username,
-                "password": self.object.password,
-                "role": self.object.role,
-                "age": self.object.age,
-                "locations": list(map(str, self.object.locations.all()))
-            }
-        )
+        return JsonResponse(user.json_representation, json_dumps_params={'ensure_ascii': False})
 
 
 @method_decorator(csrf_exempt, name="dispatch")
