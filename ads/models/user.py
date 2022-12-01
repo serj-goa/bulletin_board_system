@@ -27,6 +27,16 @@ class User(AbstractUser):
 
     @property
     def json_representation(self) -> dict:
+        if self.location:
+            loc = {
+                'id': self.location.id,
+                'address': self.location.address,
+                'latitude': self.location.latitude,
+                'longitude': self.location.longitude,
+            }
+        else:
+            loc = None
+
         return {
             "id": self.id,
             "username": self.username,
@@ -34,7 +44,7 @@ class User(AbstractUser):
             "last_name": self.last_name,
             "role": self.role,
             "age": self.age,
-            "address": self.location.address if self.location else None,
+            "address": loc,
         }
 
     def __str__(self):

@@ -13,5 +13,14 @@ class Location(m.Model):
         verbose_name = _('Address')
         verbose_name_plural = _('Addresses')
 
+    @property
+    def json_representation(self) -> dict:
+        return {
+            "id": self.id,
+            "address": self.address,
+            "latitude": self.latitude,
+            "longitude": self.longitude
+        }
+
     def __str__(self):
         return self.address
